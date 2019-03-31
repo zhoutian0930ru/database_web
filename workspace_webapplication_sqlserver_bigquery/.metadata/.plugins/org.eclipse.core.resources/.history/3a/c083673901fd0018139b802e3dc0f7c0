@@ -1,0 +1,157 @@
+package google.project2_test1;
+
+import java.io.IOException;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+/**
+ * Servlet implementation class servletdemo
+ */
+@WebServlet("/servletdemo")
+public class servletdemo extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+
+    /**
+     * Default constructor. 
+     */
+    public servletdemo() {
+        // TODO Auto-generated constructor stub
+    }
+
+	/**
+	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
+	 */
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		// TODO Auto-generated method stub
+		// TODO Auto-generated method stub
+		
+				response.setContentType("text/json; charset=utf-8");
+				String sql=request.getParameter("sql");
+				//String module=request.getParameter("module");
+				PrintWriter out = response.getWriter();
+
+				try {
+			          Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+			      } catch (ClassNotFoundException e) {
+			          // TODO Auto-generated catch block
+			          System.out.println("Can't find sqlserver jdbc driver.");
+			          e.printStackTrace();
+			      }	
+				String url="jdbc:sqlserver://localhost:1433;DatabaseName=test";
+				String username="sa";
+				String password="zhoutian";	
+				
+					
+				
+//				if(module.equals("mysql")){
+//					
+//					//mysql connection url id password
+//					url="jdbc:mysql://guokai.cj4kfmcqgzrm.us-east-1.rds.amazonaws.com:3306/mydb?useSSL=false&serverTimezone=GMT";
+//		            username="guokai123";
+//		            password="guokai123";
+//		            try {
+//		                Class.forName("com.mysql.jdbc.Driver");
+//		            } catch (ClassNotFoundException e) {
+//		                // TODO Auto-generated catch block
+//		                System.out.println("Can't find mysql jdbc driver.");
+//		                e.printStackTrace();
+//		            }
+//				}
+//				else {
+//					//redshift connection url id password
+//					url="jdbc:redshift://redshift-cluster-2.cdicylrkj8z9.us-east-2.redshift.amazonaws.com:5439/dev?useSSL=false&serverTimezone=GMT";
+//					username="zhoutian1";
+//					password="ZhouTian1";
+//					try {
+//			            Class.forName("com.amazon.redshift.jdbc.Driver");
+//			        } catch (ClassNotFoundException e) {
+//			            // TODO Auto-generated catch block
+//			            System.out.println("Can't find redshift jdbc driver.");
+//			            e.printStackTrace();
+//			        }		
+//				}
+		        
+		        Connection conn;
+		        try {
+		            conn = (Connection) DriverManager.getConnection(url, username,password);
+		            Statement stmt = (Statement) conn.createStatement(); 
+		            System.out.println("Successful database connection.");
+		            boolean sql_type=stmt.execute(sql);
+		            //SELECT
+		            if(sql_type==true) {
+		            	ResultSet rs = stmt.getResultSet();
+		            	int columns = rs.getMetaData().getColumnCount();
+		                
+		                JSONArray db = new JSONArray();
+
+		                ResultSetMetaData metaData = rs.getMetaData();   
+		             
+		                while(rs.next())
+		                {
+		             	   JSONObject jsonObj = new JSONObject();
+		             	   for(int i=1;i<=columns;i++){
+		                    
+		                     String columnName =metaData.getColumnLabel(i);   
+		               	  
+		                     String value = rs.getString(columnName);
+		                    
+		                     try {
+		      					jsonObj.put(columnName, value);
+		      				     } catch (JSONException e) {
+		      					// TODO Auto-generated catch block
+		      					e.printStackTrace();
+		      				     }           
+		                     }
+		             	     db.put(jsonObj);
+		             	       
+		                }
+		                System.out.println("select..."); 
+		                out=response.getWriter();
+		                out.println(db);
+		                System.out.println(db); 
+		                rs.close();                  
+		                stmt.close();
+		                conn.close();  
+		            //INSERT,DELETE...
+		            }else {
+		            	int count = stmt.getUpdateCount();
+		            	JSONArray db1 = new JSONArray();
+		            	JSONObject jsonObj = new JSONObject();
+		            	String name="operation_success";
+		            	String value1="("+count+" rows affected)";
+		            	try {
+		  					jsonObj.put(name, value1);
+		  				     } catch (JSONException e) {
+		  					// TODO Auto-generated catch block
+		  					e.printStackTrace();
+		  				}
+		            	db1.put(jsonObj);
+		            	
+		            	System.out.println("insert..."); 
+		            	
+		            	out=response.getWriter();
+		            	out.println(db1);
+		            	stmt.close();
+		                conn.close();  
+		            }
+		            
+		       
+		           
+		        } catch (SQLException e){
+		            System.out.println("fail to connect the database!");
+		            e.printStackTrace();
+		        }
+	}
+
+	/**
+	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
+	 */
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		// TODO Auto-generated method stub
+		doGet(request, response);
+	}
+
+}

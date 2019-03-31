@@ -1,0 +1,124 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+	<style type="text/css">
+	.comments {
+		width:100%;
+		overflow:auto;
+		word-break:break-all;
+	}
+	table, th, td {
+	    border: 1px solid black;
+	}
+	</style>
+	<script type="text/javascript">
+		var c=0
+		var t
+		function timedCount()
+		{
+			document.getElementById('txt').innerHTML=c
+			c=c+1
+			t=setTimeout("timedCount()",1000)
+		}
+	</script>
+
+	<title>CS 539</title>
+	                                
+
+</head>
+<body onload="timedCount()">
+	<label>
+	     <input type="radio" name="clickIn" value="clickIn" id="mysql"/>MySql
+	     <input type="radio" name="clickIn" value="clickIn" id="redshift"/>RedShift
+	</label>
+	<p>Query</p>
+
+	<div class="query">
+		<textarea class="comments" type="text" placeholder="Please input your SQL here." rows="20" cols="50"></textarea>
+		<br>
+	  	<button>Query</button>
+	  	<span style="text-align:right;">Time Elapsed = </span>
+		<span id="txt"></span>
+		<br>
+	</div>
+	
+	<div id='dv'></div>
+	<table id="table1"></table>
+	
+
+	<form >
+		<fieldset>
+			<ul id="aisle" class="comments"></ul>
+
+			<legend></legend>
+		</fieldset>
+	</form>
+
+	<script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js'></script>
+	<script>
+	
+
+		$('.query > button').on('click',function(){
+			var module="1";
+			
+			if(document.getElementById('mysql').checked){
+				module="mysql";
+			}
+			else{
+				if(document.getElementById('redshift').checked){
+					module="redshift";
+				}		
+			}
+
+		
+			let sqltxt = $('.query > textarea').val().trim()
+			if(!sqltxt) return false;
+			$.ajax({
+				url:'http://localhost:8080/project_1/servletdemo',
+				method:'get',
+				async:false,
+				dataType:'json',
+				data:{
+					"sql":sqltxt,
+	                "module":module.toString()                
+                }
+			}).done(function(res){
+				//alert(JSON.stringify(res))  //TEST OUTPUT
+				var html;
+				var object;
+				
+				//TITLE
+				html += "<tr>";
+				$.each(res,function(i,val){
+            		object=val;
+	            });			
+           		$.each(object,function(key,val2){   
+	            	html += "<td>";
+                    html += key;
+                    html += "</td>";
+                });
+				html += "</tr>";
+				
+				
+				//INDEX	
+				$.each(res,function(i,val){
+            		html += "<tr>";
+            		$.each(val,function(key,val2){
+   
+		            	html += "<td>";
+	                    html += val2;
+	                    html += "</td>";
+	                });
+	                html += "</tr>";
+	            });
+	 			$("#table1").html(html);
+
+			}).fail(function(err){
+				alert("Invalid SQL Statement")
+			})
+		})
+	</script>
+</body>
+</html>
